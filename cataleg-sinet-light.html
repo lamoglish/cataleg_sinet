@@ -1884,7 +1884,23 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
       } else {
         DB = PRODUCTOS_DATA;
       }
+      _restoreBasket();
       init();
+    }
+
+    function _saveBasket() {
+      localStorage.setItem('sinet_basket', JSON.stringify(Object.keys(basket)));
+    }
+
+    function _restoreBasket() {
+      try {
+        const saved = localStorage.getItem('sinet_basket');
+        if (!saved) return;
+        JSON.parse(saved).forEach(id => {
+          const p = findP(id);
+          if (p) basket[id] = p;
+        });
+      } catch(e) {}
     }
 
     function _saveToStorage() {
@@ -1912,6 +1928,8 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
     function init() {
       buildTabs();
       showHome();
+      refreshBasketUI();
+      Object.keys(basket).forEach(id => refreshCardBtn(id));
     }
 
     /* ─── Pantalla d'inici ───────────────────────────────────── */
@@ -2183,6 +2201,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
       const p = findP(id);
       if (!p) return;
       basket[id] ? delete basket[id] : (basket[id] = p);
+      _saveBasket();
       refreshBasketUI();
       refreshCardBtn(id);
       if (currentId === id) syncModalBtn(id);
@@ -2853,7 +2872,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
     }
 
     function _removeFromDB(id) {
-      if (basket[id]) { delete basket[id]; refreshBasketUI(); }
+      if (basket[id]) { delete basket[id]; _saveBasket(); refreshBasketUI(); }
       for (const key of Object.keys(DB)) {
         if (!Array.isArray(DB[key])) continue;
         const idx = DB[key].findIndex(x => x.id === id);
